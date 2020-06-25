@@ -459,7 +459,63 @@ const addRoles = () => {
 }
 
 const updateRoles = () => {
+    connection.query("SELECT title FROM role", function (err, results) {
+        if (err) throw err;
+        inquirer
+            .prompt({
+                name: "menu3",
+                type: "list",
+                message: "Update Role:",
+                choices: function () {
+                    let choiceArray = [];
+                    for (let i = 0; i < results.length; i++) {
+                        choiceArray.push(results[i].title);
+                    }
+                    choiceArray.push("Back");
+                    return choiceArray;
+                }
+            }).then(({ menu3 }) => {
+                switch (menu3) {
+                    case "Back":
+                        start();
+                        break;
+                    default:
+                        updateRole(menu3);
+                }
+            })
+    })
+}
 
+const updateRole = roleChoice => {
+    inquirer.prompt({
+        name: "menu4",
+        type: "list",
+        message: `Updating ${roleChoice}`,
+        choices: ["Title", "Salary", "Department"]
+    }).then(({menu4}) => {
+        let updating = ["", ""];
+        switch (menu4) {
+            case "Title":
+                updating = ["title", "Title"];
+                break;
+            case "Salary":
+                updating = ["salary", "Salary"];
+                break;
+            default:
+                updating = ["department_id", "Department"];
+        }
+        inquirer.prompt({
+            name: "updateVal",
+            type: "input",
+            message: `Enter new ${updating[1]} for ${roleChoice}`
+        }).then(({updateVal}, err)=>{
+            if (err) throw err;
+            connection.query(`UPDATE role SET ${updating[0]} = ? WHERE title = ?`, [updateVal, roleChoice], function(err) {
+                console.log(`${roleChoice} successfully updated with new ${updating[1]}.`);
+                rolePrompt();
+            })
+        })
+    })
 }
 
 const removeRoles = () => {
@@ -487,7 +543,7 @@ const removeRoles = () => {
                         connection.query("DELETE FROM role WHERE title = ?", menu3, function (err) {
                             if (err) throw err;
                             console.log(`${menu3} Removed.`);
-                            rolesPrompt();
+                            rolePrompt();
                         });
                 }
             })
