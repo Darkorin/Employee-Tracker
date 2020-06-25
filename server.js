@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
+const table = require("console.table");
 
 const connection = mysql.createConnection({
     host: "localhost",
@@ -23,5 +24,32 @@ connection.connect(function(err) {
   });
 
 const start = function() {
-    
+    console.log("Welcome to the Employee Management System!");
+    inquirer
+    .prompt({
+      name: "menu1",
+      type: "list",
+      message: "Main Menu:",
+      choices: ["View", "Add", "Update", "Delete", "Exit"]
+    }).then(({menu1}, err)=> {
+        switch (menu1) {
+            case "View":
+                viewPrompt();
+                break;
+            case "Add":
+                addPrompt();
+                break;
+            case "Update":
+                updatePrompt();
+                break;
+            case "Delete":
+                deletePrompt();
+                break;
+            case "Exit":
+                exit();
+                break;
+            default:
+                throw err;
+        }
+    })
 }
