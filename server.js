@@ -289,12 +289,13 @@ const viewEmpSearch = () => {
     inquirer.prompt({
         name: "name",
         type: "input",
-        message: "Enter employee name(First Last):"
+        message: "Enter employee name:"
     }).then(({name}, err) => {
         if (err) throw err;
-        connection.query("SELECT employee.id, employee.first_name, employee.last_name, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager, title, salary, `name`FROM employee employee LEFT JOIN employee manager ON employee.manager_id = manager.id LEFT JOIN `role` ON employee.role_id = `role`.id LEFT JOIN department ON department_id = department.id WHERE CONCAT(first_name, ' ', last_name) = ?", name, function(err, results) {
+        connection.query("SELECT employee.id, employee.first_name, employee.last_name, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager, title, salary, `name`FROM employee employee LEFT JOIN employee manager ON employee.manager_id = manager.id LEFT JOIN `role` ON employee.role_id = `role`.id LEFT JOIN department ON department_id = department.id WHERE CONCAT(employee.last_name, ', ', employee.first_name) = ? OR CONCAT(employee.first_name, ' ', employee.last_name) = ? OR employee.first_name = ? OR employee.last_name = ?", [name, name, name, name], function(err, results) {
             if (err) throw err;
             console.table(results);
+            viewEmps();
         })
     })
 }
