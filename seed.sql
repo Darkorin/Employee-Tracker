@@ -17,3 +17,4 @@ INSERT INTO employee VALUES (3, "Phillip", "Fry", 3, 4);
 INSERT INTO employee VALUES (4, "Hubert", "Farnsworth", 4, NULL);
 INSERT INTO employee VALUES (5, "Joe", "Simpson", 5, 6);
 INSERT INTO employee VALUES (6, "John", "Coats", 6, NULL);
+INSERT INTO employee VALUES (7, "Lauren", "Stewart", 1, 2);
