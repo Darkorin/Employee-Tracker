@@ -1,8 +1,8 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-const employees = require("employees");
-const roles = require("roles");
-const dept = require("dept");
+const employees = require("./employees");
+const roles = require("./roles");
+const dept = require("./dept");
 
 const connection = mysql.createConnection({
     host: "localhost",
@@ -66,16 +66,16 @@ const empPrompt = () => {
     }).then(({menu2}, err)=> {
         switch (menu2) {
             case "View Employees":
-                employees.view();
+                viewEmp();
                 break;
             case "Add Employees":
-                employees.add();
+                addEmp();
                 break;
             case "Update Employees":
-                employees.update();
+                updateEmp();
                 break;
             case "Remove Employees":
-                employees.remove();
+                removeEmp();
                 break;
             case "Back":
                 start();
@@ -144,19 +144,107 @@ const deptPrompt = () => {
 }
 
 const budgetPrompt = () => {
+    connection.query("SELECT * FROM department", function(err, results) {
+    if (err) throw err;
     inquirer
     .prompt({
       name: "menu2",
       type: "list",
-      message: "Employee Menu:",
-      choices: ["Manage Employees", "Manage Roles", "Manage Departments", "View Budget", "Exit"]
+      message: "Budget Menu:",
+      choices: function() {
+          let choiceArray = ["Total Budget"];
+          for(let i = 0; i < results.length; i++) {
+            choiceArray.push(`${results[i].name} Budget`);
+          }
+          choiceArray.push("Back");
+          return choiceArray;
+      }
     }).then(({menu2}, err)=> {
-    
+        switch (menu2) {
+            case "Total Budget":
+                totalBudget();
+                break;
+            case "Back":
+                start();
+                break;
+            default:
+                deptBudget(menu2);
+        }
     })
+})
 }
 
 const exit = () => {
     console.log("Exiting Employee Management System.");
     connection.end();
     process.exit();
+}
+
+const viewEmp = () => {
+
+}
+
+const addEmp = () => {
+    
+}
+
+const updateEmp = () => {
+    
+}
+
+const removeEmp = () => {
+    
+}
+
+const viewRole = () => {
+
+}
+
+const addRole = () => {
+    
+}
+
+const updateRole = () => {
+    
+}
+
+const removeRole = () => {
+    
+}
+
+const viewDept = () => {
+
+}
+
+const addDept = () => {
+    
+}
+
+const removeDept = () => {
+    
+}
+
+const totalBudget = () => {
+    connection.query("SELECT salary FROM employee JOIN `role` ON role_id = `role`.id", function(err, results) {
+        let budget = 0;
+        results.forEach(employee => {
+            budget += employee.salary;
+        });
+        console.log(`The Company-wide budget is: $${Math.floor(budget*100)/100}`)
+        budgetPrompt();
+    })
+}
+
+const deptBudget = (deptChoice) => {
+    deptChoice = deptChoice.split(' ');
+    deptChoice.pop();
+    deptChoice = deptChoice.join(' ');
+    connection.query("SELECT salary FROM employee JOIN `role` ON role_id = `role`.id JOIN department on department_id = department.id WHERE department.name = ?", deptChoice, function(err, results) {
+        let budget = 0;
+        results.forEach(employee => {
+            budget += employee.salary;
+        });
+        console.log(`The budget for ${deptChoice} is: $${Math.floor(budget*100)/100}`)
+        budgetPrompt();
+    })
 }
