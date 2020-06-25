@@ -66,16 +66,16 @@ const empPrompt = () => {
     }).then(({menu2}, err)=> {
         switch (menu2) {
             case "View Employees":
-                viewEmp();
+                viewEmps();
                 break;
             case "Add Employees":
-                addEmp();
+                addEmps();
                 break;
             case "Update Employees":
-                updateEmp();
+                updateEmps();
                 break;
             case "Remove Employees":
-                removeEmp();
+                removeEmps();
                 break;
             case "Back":
                 start();
@@ -96,16 +96,16 @@ const rolePrompt = () => {
     }).then(({menu2}, err)=> {
         switch (menu2) {
             case "View Roles":
-                roles.view();
+                viewRoles();
                 break;
             case "Add Roles":
-                roles.add();
+                addRoles();
                 break;
             case "Update Roles":
-                roles.update();
+                updateRoles();
                 break;
             case "Remove Roles":
-                roles.remove();
+                removeRoles();
                 break;
             case "Back":
                 start();
@@ -126,13 +126,13 @@ const deptPrompt = () => {
     }).then(({menu2}, err)=> {
         switch (menu2) {
             case "View Departments":
-                dept.view();
+                viewDept();
                 break;
             case "Add Departments":
-                dept.add();
+                addDept();
                 break;
             case "Remove Departments":
-                dept.remove();
+                removeDept();
                 break;
             case "Back":
                 start();
@@ -180,35 +180,61 @@ const exit = () => {
     process.exit();
 }
 
-const viewEmp = () => {
-
+const viewEmps = () => {
+    inquirer
+    .prompt({
+      name: "menu3",
+      type: "list",
+      message: "View Employees:",
+      choices: ["All Employees", "Name Search", "By Department", "By Manager", "Back"]
+    }).then(({menu2}, err)=> {
+        switch (menu2) {
+            case "All Employees":
+                viewAllEmps();
+                break;
+            case "Name Search":
+                viewEmpSearch();
+                break;
+            case "By Department":
+                viewEmpByDept();
+                break;
+            case "By Manager":
+                viewEmpByManager();
+                break;
+            case "Back":
+                empPrompt();
+                break;
+            default:
+                throw err;
+        }
+    })
 }
 
-const addEmp = () => {
+const addEmps = () => {
     
 }
 
-const updateEmp = () => {
+const updateEmps = () => {
     
 }
 
-const removeEmp = () => {
+const removeEmps = () => {
     
 }
 
-const viewRole = () => {
+const viewRoles = () => {
 
 }
 
-const addRole = () => {
+const addRoles = () => {
     
 }
 
-const updateRole = () => {
+const updateRoles = () => {
     
 }
 
-const removeRole = () => {
+const removeRoles = () => {
     
 }
 
@@ -247,4 +273,20 @@ const deptBudget = (deptChoice) => {
         console.log(`The budget for ${deptChoice} is: $${Math.floor(budget*100)/100}`)
         budgetPrompt();
     })
+}
+
+const viewAllEmps = () => {
+    
+}
+
+const viewEmpSearch = () => {
+
+}
+
+const viewEmpByDept = () => {
+
+}
+
+const viewEmpByManager = () => {
+
 }
