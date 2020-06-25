@@ -249,13 +249,14 @@ const removeDept = () => {
 }
 
 const totalBudget = () => {
-    connection.query("SELECT salary FROM employee JOIN `role` ON role_id = `role`.id", function(err, results) {
+    connection.query("SELECT name AS Department, SUM(salary) AS Budget FROM employee JOIN `role` ON role_id = `role`.id JOIN department on department_id = department.id GROUP BY (department.name)", function(err, results) {
         if (err) throw err;
         let budget = 0;
-        results.forEach(employee => {
-            budget += employee.salary;
+        results.forEach(dept => {
+            budget += dept.Budget;
         });
-        console.log(`The Company-wide budget is: $${Math.floor(budget*100)/100}`)
+        console.table(results);
+        console.log(`Total: $${Math.floor(budget*100)/100}`)
         budgetPrompt();
     })
 }
@@ -264,13 +265,14 @@ const deptBudget = (deptChoice) => {
     deptChoice = deptChoice.split(' ');
     deptChoice.pop();
     deptChoice = deptChoice.join(' ');
-    connection.query("SELECT salary FROM employee JOIN `role` ON role_id = `role`.id JOIN department on department_id = department.id WHERE department.name = ?", deptChoice, function(err, results) {
+    connection.query("SELECT title AS Role, salary AS Salary FROM employee JOIN `role` ON role_id = `role`.id JOIN department on department_id = department.id WHERE department.name = ?", deptChoice, function(err, results) {
         if (err) throw err;
         let budget = 0;
         results.forEach(employee => {
-            budget += employee.salary;
+            budget += employee.Salary;
         });
-        console.log(`The budget for ${deptChoice} is: $${Math.floor(budget*100)/100}`)
+        console.table(results);
+        console.log(`${deptChoice} Total: $${Math.floor(budget*100)/100}`)
         budgetPrompt();
     })
 }
