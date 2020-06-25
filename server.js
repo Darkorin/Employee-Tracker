@@ -208,75 +208,6 @@ const viewEmps = () => {
     })
 }
 
-const addEmps = () => {
-    
-}
-
-const updateEmps = () => {
-    
-}
-
-const removeEmps = () => {
-    
-}
-
-const viewRoles = () => {
-
-}
-
-const addRoles = () => {
-    
-}
-
-const updateRoles = () => {
-    
-}
-
-const removeRoles = () => {
-    
-}
-
-const viewDept = () => {
-
-}
-
-const addDept = () => {
-    
-}
-
-const removeDept = () => {
-    
-}
-
-const totalBudget = () => {
-    connection.query("SELECT name AS Department, SUM(salary) AS Budget FROM employee JOIN `role` ON role_id = `role`.id JOIN department on department_id = department.id GROUP BY (department.name)", function(err, results) {
-        if (err) throw err;
-        let budget = 0;
-        results.forEach(dept => {
-            budget += dept.Budget;
-        });
-        console.table(results);
-        console.log(`Total: $${Math.floor(budget*100)/100}`)
-        budgetPrompt();
-    })
-}
-
-const deptBudget = deptChoice => {
-    deptChoice = deptChoice.split(' ');
-    deptChoice.pop();
-    deptChoice = deptChoice.join(' ');
-    connection.query("SELECT title AS Role, salary AS Salary FROM employee JOIN `role` ON role_id = `role`.id JOIN department on department_id = department.id WHERE department.name = ?", deptChoice, function(err, results) {
-        if (err) throw err;
-        let budget = 0;
-        results.forEach(employee => {
-            budget += employee.Salary;
-        });
-        console.table(results);
-        console.log(`${deptChoice} Total: $${Math.floor(budget*100)/100}`)
-        budgetPrompt();
-    })
-}
-
 const viewAllEmps = () => {
     connection.query("SELECT employee.id, employee.first_name, employee.last_name, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager, title, salary, `name` AS Department FROM employee employee LEFT JOIN employee manager ON employee.manager_id = manager.id LEFT JOIN `role` ON employee.role_id = `role`.id LEFT JOIN department ON department_id = department.id", function(err, results) {
         if (err) throw err;
@@ -387,5 +318,153 @@ const viewEmpByManagerAll = () => {
 }
 
 const viewEmpByManagerSingle = managerChoice => {
+    connection.query("SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS Manager, employee.id, employee.first_name, employee.last_name,  title, salary, `name` AS Department FROM employee employee INNER JOIN employee manager ON employee.manager_id = manager.id INNER JOIN `role` ON employee.role_id = `role`.id INNER JOIN department ON department_id = department.id HAVING Manager = ?", managerChoice, function(err, results) {
+        if (err) throw err;
+        console.table(results);
+        viewEmpByManager();
+    })
+}
 
+const addEmps = () => {
+    
+}
+
+const updateEmps = () => {
+    
+}
+
+const removeEmps = () => {
+    
+}
+
+const viewRoles = () => {
+    inquirer
+    .prompt({
+      name: "menu3",
+      type: "list",
+      message: "View Roles:",
+      choices: ["All Roles", "By Department", "Back"]
+    }).then(({menu3}, err)=> {
+        switch (menu3) {
+            case "All Roles":
+                viewAllRoles();
+                break;
+            case "By Department":
+                viewRolesByDept();
+                break;
+            case "Back":
+                rolePrompt();
+                break;
+            default:
+                throw err;
+        }
+    })
+}
+
+const viewAllRoles = () => {
+    connection.query("SELECT role.id, title, salary, `name` AS department FROM `role` JOIN department ON department_id = department.id", function(err, results) {
+        if (err) throw err;
+        console.table(results);
+        viewRoles();
+    })
+}
+
+const viewRolesByDept = () => {
+    connection.query("SELECT `name` FROM department", function(err, results) {
+        if (err) throw err;
+        inquirer
+        .prompt({
+          name: "menu4",
+          type: "list",
+          message: "View Roles by Department:",
+          choices: function() {
+              let choiceArray = ["All Departments"];
+              for(let i = 0; i < results.length; i++) {
+                choiceArray.push(results[i].name);
+              }
+              choiceArray.push("Back");
+              return choiceArray;
+          }
+        }).then(({menu4})=> {
+            switch (menu4) {
+                case "All Departments":
+                    viewRolesByDeptAll();
+                    break;
+                case "Back":
+                    start();
+                    break;
+                default:
+                    viewRolesByDeptSingle(menu4);
+            }
+        })
+    })
+}
+
+const viewRolesByDeptAll = () => {
+    connection.query("SELECT role.id, title, salary, `name` AS department FROM `role` JOIN department ON department_id = department.id ORDER BY `name`", function(err, results) {
+        if (err) throw err;
+        console.table(results);
+        viewRoles();
+    })
+}
+
+const viewRolesByDeptSingle = deptChoice => {
+    connection.query("SELECT role.id, title, salary, `name` AS department FROM `role` JOIN department ON department_id = department.id WHERE `name` = ?", deptChoice, function(err, results) {
+        if (err) throw err;
+        console.table(results);
+        viewRoles();
+    })
+}
+
+const addRoles = () => {
+    
+}
+
+const updateRoles = () => {
+    
+}
+
+const removeRoles = () => {
+    
+}
+
+const viewDept = () => {
+
+}
+
+const addDept = () => {
+    
+}
+
+const removeDept = () => {
+    
+}
+
+const totalBudget = () => {
+    connection.query("SELECT name AS Department, SUM(salary) AS Budget FROM employee JOIN `role` ON role_id = `role`.id JOIN department on department_id = department.id GROUP BY (department.name)", function(err, results) {
+        if (err) throw err;
+        let budget = 0;
+        results.forEach(dept => {
+            budget += dept.Budget;
+        });
+        console.table(results);
+        console.log(`Total: $${Math.floor(budget*100)/100}`)
+        budgetPrompt();
+    })
+}
+
+const deptBudget = deptChoice => {
+    deptChoice = deptChoice.split(' ');
+    deptChoice.pop();
+    deptChoice = deptChoice.join(' ');
+    connection.query("SELECT title AS Role, salary AS Salary FROM employee JOIN `role` ON role_id = `role`.id JOIN department on department_id = department.id WHERE department.name = ?", deptChoice, function(err, results) {
+        if (err) throw err;
+        let budget = 0;
+        results.forEach(employee => {
+            budget += employee.Salary;
+        });
+        console.table(results);
+        console.log(`${deptChoice} Total: $${Math.floor(budget*100)/100}`)
+        budgetPrompt();
+    })
 }
