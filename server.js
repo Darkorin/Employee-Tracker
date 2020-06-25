@@ -332,7 +332,7 @@ const viewEmpByDept = () => {
 }
 
 const viewEmpByManager = () => {
-    connection.query("SELECT * FROM employee WHERE manager_id = NULL", function(err, results) {
+    connection.query("SELECT * FROM employee WHERE manager_id IS NULL", function(err, results) {
         if (err) throw err;
         inquirer
         .prompt({
@@ -342,7 +342,7 @@ const viewEmpByManager = () => {
           choices: function() {
               let choiceArray = ["All Managers"];
               for(let i = 0; i < results.length; i++) {
-                choiceArray.push(`${results[i].last_name}, ${results[i].first_name}`);
+                choiceArray.push(`${results[i].first_name} ${results[i].last_name}`);
               }
               choiceArray.push("Back");
               return choiceArray;
@@ -379,7 +379,11 @@ const viewEmpByDeptSingle = deptChoice => {
 }
 
 const viewEmpByManagerAll = () => {
-
+    connection.query("SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS Manager, employee.id, employee.first_name, employee.last_name,  title, salary, `name` AS Department FROM employee employee INNER JOIN employee manager ON employee.manager_id = manager.id INNER JOIN `role` ON employee.role_id = `role`.id INNER JOIN department ON department_id = department.id ORDER BY Manager", function(err, results) {
+        if (err) throw err;
+        console.table(results);
+        viewEmpByManager();
+    })
 }
 
 const viewEmpByManagerSingle = managerChoice => {
