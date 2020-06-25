@@ -387,7 +387,7 @@ const addEmps = () => {
                                     }
                                 }).then(({ manager }, err) => {
                                     if (dept === "Back") rolePrompt();
-                                    connection.query("SELECT id FROM employee WHERE CONCAT(first_name, ' ', last_name) = ?", manager, function(err, results) {
+                                    connection.query("SELECT id FROM employee WHERE CONCAT(first_name, ' ', last_name) = ?", manager, function (err, results) {
                                         if (err) throw err;
                                         let managerID = results[0].id;
                                         connection.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUE (?, ?, ?, ?)", [firstName, lastName, roleID, managerID], function (err) {
@@ -407,7 +407,113 @@ const addEmps = () => {
 }
 
 const updateEmps = () => {
+    connection.query("SELECT CONCAT(first_name, ' ', last_name) AS Name, id FROM employee", function (err, results) {
+        if (err) throw err;
+        inquirer
+            .prompt({
+                name: "menu3",
+                type: "list",
+                message: "Update Employee:",
+                choices: function () {
+                    let choiceArray = [];
+                    for (let i = 0; i < results.length; i++) {
+                        choiceArray.push(`${results[i].Name}, id: ${results[i].id}`);
+                    }
+                    choiceArray.push("Back");
+                    return choiceArray;
+                }
+            }).then(({ menu3 }) => {
+                switch (menu3) {
+                    case "Back":
+                        empPrompt();
+                        break;
+                    default:
+                        updateEmployee(menu3);
+                }
+            })
+    })
+}
 
+const updateEmployee = employee => {
+    employee = employee.split(', id: ');
+    const empId = employee[1];
+    employee = employee[0];
+    inquirer.prompt({
+        name: "menu4",
+        type: "list",
+        message: `Updating ${employee}`,
+        choices: ["First Name", "Last Name", "Role", "Manager"]
+    }).then(({ menu4 }) => {
+        let updating = ["", ""];
+        switch (menu4) {
+            case "First Name":
+                updating = ["first_name", "First Name"];
+                updateEmpFLN(employee, empId, updating);
+                break;
+            case "Last Name":
+                updating = ["last_name", "Last Name"];
+                updateEmpFLN(employee, empId, updating);
+                break;
+            case "Role":
+                updating = ["role_id", "Role", "title", "title"];
+                updateEmpRM(employee, empId, updating);
+                break;
+            default:
+                updating = ["manager_id", "Manager", "manager", "CONCAT(first_name, ' ', last_name)"];
+                updateEmpRM(employee, empId, updating);
+        }
+
+    })
+}
+
+const updateEmpFLN = (employee, updating) => {
+    // employee = employee.split(' ');
+    // let firstName = employee[0];
+    // let lastName = employee[1];
+    // employee = employee.join(' ');
+    // inquirer.prompt({
+    //     name: "updateVal",
+    //     type: "input",
+    //     message: `Enter new ${updating[1]} for ${employee}`
+    // }).then(({ updateVal }, err) => {
+    //     if (err) throw err;
+    //     connection.query(`UPDATE role SET ${updating[0]} = ? WHERE title = ?`, [updateVal, roleChoice], function (err) {
+    //         console.log(`${roleChoice} successfully updated with new ${updating[1]}.`);
+    //         empPrompt();
+    //     })
+    // })
+}
+
+const updateEmpRM = (employee, empId, updating) => {
+    connection.query(`SELECT CONCAT(first_name, ' ', last_name) AS manager, role.title, role_id, manager_id FROM employee JOIN role ON role_id = role.id GROUP BY ${updating[2]}`, function (err, results) {
+        if (err) throw err;
+        inquirer
+            .prompt({
+                name: "updateVal",
+                type: "list",
+                message: `Select a new ${updating[1]} for ${employee}:`,
+                choices: function () {
+                    let choiceArray = [];
+                    for (let i = 0; i < results.length; i++) {
+                        choiceArray.push(results[i][updating[2]]);
+                    }
+                    choiceArray.push("Back");
+                    return choiceArray;
+                }
+            }).then(({ updateVal }) => {
+                if (updateVal === "Back") empPrompt();
+                let updateID;
+                connection.query(`SELECT employee.id AS manager_id, role_id, CONCAT(first_name, ' ', last_name) AS manager, title FROM employee JOIN role ON role_id = role.id JOIN department ON department_id = department.id WHERE ${updating[3]} = '${updateVal}'`, function(err, results) {
+                    if (err) throw err;
+                    updateID = results[0][updating[0]];
+                    connection.query(`UPDATE employee SET ${updating[0]} = ? WHERE employee.id = ?`, [updateID, empId], function (err) {
+                        if (err) throw err;
+                        console.log(`Employee ${employee} successfully updated.`);
+                        empPrompt();
+                    })
+                })          
+            })
+    })
 }
 
 const removeEmps = () => {
