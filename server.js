@@ -1,8 +1,6 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-const employees = require("./employees");
-const roles = require("./roles");
-const dept = require("./dept");
+const table = require("console.table");
 
 const connection = mysql.createConnection({
     host: "localhost",
@@ -187,8 +185,8 @@ const viewEmps = () => {
       type: "list",
       message: "View Employees:",
       choices: ["All Employees", "Name Search", "By Department", "By Manager", "Back"]
-    }).then(({menu2}, err)=> {
-        switch (menu2) {
+    }).then(({menu3}, err)=> {
+        switch (menu3) {
             case "All Employees":
                 viewAllEmps();
                 break;
@@ -252,6 +250,7 @@ const removeDept = () => {
 
 const totalBudget = () => {
     connection.query("SELECT salary FROM employee JOIN `role` ON role_id = `role`.id", function(err, results) {
+        if (err) throw err;
         let budget = 0;
         results.forEach(employee => {
             budget += employee.salary;
@@ -266,6 +265,7 @@ const deptBudget = (deptChoice) => {
     deptChoice.pop();
     deptChoice = deptChoice.join(' ');
     connection.query("SELECT salary FROM employee JOIN `role` ON role_id = `role`.id JOIN department on department_id = department.id WHERE department.name = ?", deptChoice, function(err, results) {
+        if (err) throw err;
         let budget = 0;
         results.forEach(employee => {
             budget += employee.salary;
@@ -276,11 +276,25 @@ const deptBudget = (deptChoice) => {
 }
 
 const viewAllEmps = () => {
-    
+    connection.query("SELECT employee.id, employee.first_name, employee.last_name, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager, title, salary, `name`FROM employee employee LEFT JOIN employee manager ON employee.manager_id = manager.id LEFT JOIN `role` ON employee.role_id = `role`.id LEFT JOIN department ON department_id = department.id", function(err, results) {
+        if (err) throw err;
+        console.table(results);
+        viewEmps();
+    })
 }
 
 const viewEmpSearch = () => {
-
+    inquirer.prompt({
+        name: "name",
+        type: "input",
+        message: "Enter employee name(First Last):"
+    }).then(({name}, err) => {
+        if (err) throw err;
+        connection.query("SELECT employee.id, employee.first_name, employee.last_name, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager, title, salary, `name`FROM employee employee LEFT JOIN employee manager ON employee.manager_id = manager.id LEFT JOIN `role` ON employee.role_id = `role`.id LEFT JOIN department ON department_id = department.id WHERE CONCAT(first_name, ' ', last_name) = ?", name, function(err, results) {
+            if (err) throw err;
+            console.table(results);
+        })
+    })
 }
 
 const viewEmpByDept = () => {
