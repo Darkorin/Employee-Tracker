@@ -513,7 +513,41 @@ const updateEmpRM = (employee, empId, updating) => {
 }
 
 const removeEmps = () => {
+    connection.query("SELECT CONCAT(first_name, ' ', last_name) AS Name, id FROM employee", function (err, results) {
+        if (err) throw err;
+        inquirer
+            .prompt({
+                name: "menu3",
+                type: "list",
+                message: "Remove Employee:",
+                choices: function () {
+                    let choiceArray = [];
+                    for (let i = 0; i < results.length; i++) {
+                        choiceArray.push(`${results[i].Name}, id: ${results[i].id}`);
+                    }
+                    choiceArray.push("Back");
+                    return choiceArray;
+                }
+            }).then(({ menu3 }) => {
+                switch (menu3) {
+                    case "Back":
+                        empPrompt();
+                        break;
+                    default:
+                        removeEmployee(menu3);
+                }
+            })
+    })
+}
 
+const removeEmployee = employee => {
+    employee = employee.split(', id: ');
+    const empId = employee[1];
+    employee = employee[0];
+    connection.query("DELETE FROM employee WHERE id = ?", empId, function(err) {
+        console.log(`${employee} successfully removed.`);
+        empPrompt();
+    })
 }
 
 const viewRoles = () => {
