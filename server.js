@@ -404,7 +404,7 @@ const viewRolesByDeptAll = () => {
     connection.query("SELECT role.id, title, salary, `name` AS department FROM `role` JOIN department ON department_id = department.id ORDER BY `name`", function (err, results) {
         if (err) throw err;
         console.table(results);
-        viewRoles();
+        viewRolesByDept();
     })
 }
 
@@ -412,7 +412,7 @@ const viewRolesByDeptSingle = deptChoice => {
     connection.query("SELECT role.id, title, salary, `name` AS department FROM `role` JOIN department ON department_id = department.id WHERE `name` = ?", deptChoice, function (err, results) {
         if (err) throw err;
         console.table(results);
-        viewRoles();
+        viewRolesByDept();
     })
 }
 
@@ -463,7 +463,35 @@ const updateRoles = () => {
 }
 
 const removeRoles = () => {
-
+    connection.query("SELECT title FROM role", function (err, results) {
+        if (err) throw err;
+        inquirer
+            .prompt({
+                name: "menu3",
+                type: "list",
+                message: "Remove Role:",
+                choices: function () {
+                    let choiceArray = [];
+                    for (let i = 0; i < results.length; i++) {
+                        choiceArray.push(results[i].title);
+                    }
+                    choiceArray.push("Back");
+                    return choiceArray;
+                }
+            }).then(({ menu3 }) => {
+                switch (menu3) {
+                    case "Back":
+                        start();
+                        break;
+                    default:
+                        connection.query("DELETE FROM role WHERE title = ?", menu3, function (err) {
+                            if (err) throw err;
+                            console.log(`${menu3} Removed.`);
+                            rolesPrompt();
+                        });
+                }
+            })
+    })
 }
 
 const viewDept = () => {
