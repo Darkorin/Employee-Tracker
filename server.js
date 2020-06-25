@@ -326,7 +326,84 @@ const viewEmpByManagerSingle = managerChoice => {
 }
 
 const addEmps = () => {
-
+    inquirer.prompt({
+        name: "name",
+        type: "input",
+        message: "Enter employee name (First Last)."
+    }).then(({ name }, err) => {
+        name = name.split(' ');
+        let firstName = name[0];
+        let lastName = name[1];
+        name = name.join(' ');
+        connection.query("SELECT `name` FROM department", function (err, results) {
+            if (err) throw err;
+            inquirer.prompt({
+                name: "dept",
+                type: "list",
+                message: `What dept is ${name} in?`,
+                choices: function () {
+                    let choiceArray = [];
+                    for (let i = 0; i < results.length; i++) {
+                        choiceArray.push(results[i].name);
+                    }
+                    choiceArray.push("Back");
+                    return choiceArray;
+                }
+            }).then(({ dept }, err) => {
+                if (err) throw err;
+                if (dept === "Back") rolePrompt();
+                connection.query("SELECT title FROM role JOIN department ON department_id = department.id WHERE name = ?", dept, function (err, results) {
+                    if (err) throw err;
+                    inquirer.prompt({
+                        name: "role",
+                        type: "list",
+                        message: `What is ${name}'s role?`,
+                        choices: function () {
+                            let choiceArray = [];
+                            for (let i = 0; i < results.length; i++) {
+                                choiceArray.push(results[i].title);
+                            }
+                            choiceArray.push("Back");
+                            return choiceArray;
+                        }
+                    }).then(({ role }, err) => {
+                        let roleID;
+                        connection.query("SELECT title, role.id FROM role JOIN employee ON role.id = role_id WHERE title = ?", role, function (err, results) {
+                            if (err) throw err;
+                            roleID = results[0].id;
+                            connection.query("SELECT CONCAT(first_name, ' ', last_name) AS manager FROM employee LEFT JOIN role ON role_id = role.id LEFT JOIN department ON role.department_id = department.id WHERE department.`name` = ?", dept, function (err, results) {
+                                if (err) throw err;
+                                inquirer.prompt({
+                                    name: "manager",
+                                    type: "list",
+                                    message: `Who is ${name}'s supervisor?`,
+                                    choices: function () {
+                                        let choiceArray = [];
+                                        for (let i = 0; i < results.length; i++) {
+                                            choiceArray.push(results[i].manager);
+                                        }
+                                        choiceArray.push("Back");
+                                        return choiceArray;
+                                    }
+                                }).then(({ manager }, err) => {
+                                    if (dept === "Back") rolePrompt();
+                                    connection.query("SELECT id FROM employee WHERE CONCAT(first_name, ' ', last_name) = ?", manager, function(err, results) {
+                                        if (err) throw err;
+                                        let managerID = results[0].id;
+                                        connection.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUE (?, ?, ?, ?)", [firstName, lastName, roleID, managerID], function (err) {
+                                            if (err) throw err;
+                                            console.log(`Employee ${name} Added.`);
+                                            empPrompt();
+                                        })
+                                    })
+                                })
+                            })
+                        })
+                    })
+                })
+            })
+        })
+    })
 }
 
 const updateEmps = () => {
@@ -492,7 +569,7 @@ const updateRole = roleChoice => {
         type: "list",
         message: `Updating ${roleChoice}`,
         choices: ["Title", "Salary", "Department"]
-    }).then(({menu4}) => {
+    }).then(({ menu4 }) => {
         let updating = ["", ""];
         switch (menu4) {
             case "Title":
@@ -508,9 +585,9 @@ const updateRole = roleChoice => {
             name: "updateVal",
             type: "input",
             message: `Enter new ${updating[1]} for ${roleChoice}`
-        }).then(({updateVal}, err)=>{
+        }).then(({ updateVal }, err) => {
             if (err) throw err;
-            connection.query(`UPDATE role SET ${updating[0]} = ? WHERE title = ?`, [updateVal, roleChoice], function(err) {
+            connection.query(`UPDATE role SET ${updating[0]} = ? WHERE title = ?`, [updateVal, roleChoice], function (err) {
                 console.log(`${roleChoice} successfully updated with new ${updating[1]}.`);
                 rolePrompt();
             })
