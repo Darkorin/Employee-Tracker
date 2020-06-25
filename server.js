@@ -466,22 +466,18 @@ const updateEmployee = employee => {
     })
 }
 
-const updateEmpFLN = (employee, updating) => {
-    // employee = employee.split(' ');
-    // let firstName = employee[0];
-    // let lastName = employee[1];
-    // employee = employee.join(' ');
-    // inquirer.prompt({
-    //     name: "updateVal",
-    //     type: "input",
-    //     message: `Enter new ${updating[1]} for ${employee}`
-    // }).then(({ updateVal }, err) => {
-    //     if (err) throw err;
-    //     connection.query(`UPDATE role SET ${updating[0]} = ? WHERE title = ?`, [updateVal, roleChoice], function (err) {
-    //         console.log(`${roleChoice} successfully updated with new ${updating[1]}.`);
-    //         empPrompt();
-    //     })
-    // })
+const updateEmpFLN = (employee, empId, updating) => {
+    inquirer.prompt({
+        name: "updateVal",
+        type: "input",
+        message: `Enter new ${updating[1]} for ${employee}`
+    }).then(({ updateVal }, err) => {
+        if (err) throw err;
+        connection.query(`UPDATE employee SET ${updating[0]} = ? WHERE employee.id = ?`, [updateVal, empId], function (err) {
+            console.log(`${employee} successfully updated with new ${updating[1]}.`);
+            empPrompt();
+        })
+    })
 }
 
 const updateEmpRM = (employee, empId, updating) => {
